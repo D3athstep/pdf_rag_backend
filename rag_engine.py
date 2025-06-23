@@ -3,6 +3,11 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import re
 import chromadb
 from chromadb.config import Settings 
+from dotenv import  load_dotenv
+import os 
+import  openai
+load_dotenv ()
+openai.api_key= os.getenv("OPENAI_API_KEY")
 
 def processpdf(pdf_path):
     reader = PdfReader(pdf_path)
@@ -52,6 +57,10 @@ def get_chroma_collection(name):
     return collection
 
 def dummy_chroma_collection(collection):
+    dummy_embeddings=[]
+    for i,doc in enumerate(dummy_document):
+        openai.Embedding.create()
+        
     dummy_document=["This is a sample document.", "ChromaDB is awesome!", "AI models are fun."]
     dummy_id=["doc1","doc2","doc3"]
     print("adding data into chroma")
