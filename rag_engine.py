@@ -59,15 +59,15 @@ def get_chroma_collection(name):
 def dummy_chroma_collection(collection):
     dummy_embeddings=[]
     for i,doc in enumerate(dummy_document):
-        openai.Embedding.create()
-        
-    dummy_document=["This is a sample document.", "ChromaDB is awesome!", "AI models are fun."]
-    dummy_id=["doc1","doc2","doc3"]
-    print("adding data into chroma")
-    collection.add(
-    documents= dummy_document,
-    ids=dummy_id)
-    print("added data successfully")
+        try:
+            response = openai.Embedding.create(input=doc,model="text-embedding-ada-002")
+            embedding = response['data'][0]["embedding"]
+            dummy_embeddings.append(embedding)
+            print(f"Embedded doc{i+1}")
+        except Exception as e:
+            print("Error in embedding doc", i+1)
+            print(e)
+            continue
 
 def query_chroma_collection(collection,query_texts):
     results= collection.query(
@@ -77,8 +77,15 @@ def query_chroma_collection(collection,query_texts):
     for result in results['documents']:
         print(result)
 
-def embed_and_store(chunks,collection):
-    pass
+def embed_and_store(chunks,collection,documents,ids,embeddings):
+    dummy_document=["This is a sample document.", "ChromaDB is awesome!", "AI models are fun."]
+    dummy_id=["doc1","doc2","doc3"]
+    print("adding data into chroma")
+    collection.add(
+    documents= dummy_document,
+    embeddings=dummy_embeddings_embedding,
+    ids=dummy_id)
+    print("added data successfully")
 
 
 #Add and learn data cleaning
