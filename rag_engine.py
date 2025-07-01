@@ -64,8 +64,6 @@ def get_chroma_collection(name):
     collection=  client.get_or_create_collection(name)
     return collection
 
-dummy_document=["This is a sample document.", "ChromaDB is awesome!", "AI models are fun."]
-dummy_id=["doc1","doc2","doc3"]
 
 def dummy_chroma_collection(collection,dummy_document):
     # appending data into dummy_embedding 
@@ -82,7 +80,6 @@ def dummy_chroma_collection(collection,dummy_document):
     return dummy_embeddings
 
 def query_chroma_collection(collection,query_texts):
-   # query_embedding=client.embeddings.create(input=query_texts,model="text-embedding-ada-002")
     vector = model.encode(query_texts)
     results= collection.query(
         query_embeddings=[vector],n_results=3
@@ -106,8 +103,6 @@ def embed_chunks(chunks,model):
     return embeddings
 
 def embed_and_store(collection,chunks,ids,embeddings):
-    #dummy_document=["This is a sample document.", "ChromaDB is awesome!", "AI models are fun."]
-   # dummy_id=["doc1","doc2","doc3"]
     print("adding data into chroma")
     collection.add(
     documents= chunks,
