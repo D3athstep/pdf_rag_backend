@@ -3,13 +3,15 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import re
 import chromadb
 from chromadb.config import Settings 
-#from dotenv import  load_dotenv
-#import os 
-#from openai import OpenAI
+from dotenv import  load_dotenv
+import os 
+import google.generativeai as genai
 from sentence_transformers import SentenceTransformer
 model = SentenceTransformer("all-MiniLM-L6-V2")
-#load_dotenv ()
-#client=OpenAI(api_key= os.getenv("OPENAI_API_KEY"))
+load_dotenv ()
+genai.configure(api_key= os.getenv("GOOGLE_API_KEY"))
+#for m in genai.list_models():
+#    print(m.name, "→ supports", m.supported_generation_methods)
 
 def processpdf(pdf_path):
     #get the pdf file and extract the data from it 
@@ -86,7 +88,7 @@ def query_chroma_collection(collection,query_texts):
     )
     print("Query result")
     for result in results['documents']:
-        print(result)
+        context= "".join(results['documents'][0])
 
 def generate_ids(chunks):
     if chunks is None:
@@ -111,18 +113,67 @@ def embed_and_store(collection,chunks,ids,embeddings):
     print("added data successfully")
     print(f"Collection now has {collection.count()} documents.")
 
+def generate_answer_gemni(context,query):
+    prompt =  f"""use the context below to answer the question concisely
+    print ("full prompt sent to gemni",prompt)
+    Context:
+    {context}
+    Question:
+    {query}
+    Answer : """
+
+    model =genai.GenerativeModel(model_name='gemini-1.5-flash')
+    try:
+        response = model.generate_content(prompt)
+        print("Raw gemini response object",response)
+
+        try:
+            print("Candidate response",response.candidates[0].content.parts[0].text)
+            return response.candidates[0].content.parts[0].text
+        except Exception as e:
+            print("unable to extract partss[0].text",e)
+            return "Could not extract a clean answer from the response."
+    except Exception as e:
+        print("Error Generating response",e)
+        return "Sorry, I could not generate an answer."
+
+def test_gemini_basic():
+    prompt="""Use the context below to answer the question concisely.
+    Context:
+    ChromaDB is an open-source vector database used to store and search text embeddings
+    Question:
+    What is ChromaDB? 
+    Answer:"""
+
+    try:
+        model= genai.GenerativeModel('gemini-1.5-flash')
+        response= model.generate_content(prompt)
+        print ("raw response",response)
+
+        try:
+            print("Gemini Answer",response.text)
+        except AttributeError:
+            print("Trying alternate format")
+            print("Answer from parts",response.candidates[0].content.parts[0].text)
+    except Exception as e:
+        print("Gemini api error",e)
 #Add and learn data cleaning
 #Embedding it with gemni or chroma
 
 if __name__ == "__main__":
+
+
     pdf_file = "E:\\AI learning\\pdf-rag-backend\\pdf\\sample.pdf"
     collection= get_chroma_collection("pdf_chunks")
     alltext=processpdf(pdf_file)
     chunks= split_into_chunks(alltext)
     ids=generate_ids(chunks)
     embeddings=embed_chunks(chunks,model)
-    dummy_chroma_collection(collection,dummy_document)
     embed_and_store(collection=collection,chunks=chunks,ids=ids,embeddings=embeddings)
-    query_chroma_collection(collection,"What is the purpose of this document?")
-    
-    
+    query = "What is the purpose of this document?"
+    context= query_chroma_collection(collection,query)
+    answer= generate_answer_gemni(context,query)
+    print("Answer",answer)
+   
+    #test_gemini_basic()
+   
