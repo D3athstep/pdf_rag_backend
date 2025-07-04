@@ -88,7 +88,11 @@ def query_chroma_collection(collection,query_texts):
     )
     print("Query result")
     for result in results['documents']:
-        context= "".join(results['documents'][0])
+        if results.get('documents') and results['documents'][0]:
+            context= "".join(results['documents'][0])
+        else:
+            print("No relevant document found. Cannot build context")
+            context=""
 
 def generate_ids(chunks):
     if chunks is None:
@@ -172,6 +176,7 @@ if __name__ == "__main__":
     embed_and_store(collection=collection,chunks=chunks,ids=ids,embeddings=embeddings)
     query = "What is the purpose of this document?"
     context= query_chroma_collection(collection,query)
+    print("Final context from chromadb",context[:500])
     answer= generate_answer_gemni(context,query)
     print("Answer",answer)
    
